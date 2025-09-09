@@ -1,6 +1,6 @@
 /**
- * 强力滚动保护脚本
- * 通过劫持滚动方法 + 拦截事件源头，彻底阻止 Twikoo 按钮点击导致的滚动跳转
+ * 修复版滚动保护脚本
+ * 移除表单提交默认阻止，确保评论能正常发送，同时保留防滚动跳转功能
  */
 
 (() => {
@@ -37,9 +37,8 @@
 		return false;
 	}
 
-	// 启动滚动保护（新增：立即锁定当前滚动位置）
+	// 启动滚动保护（立即锁定当前滚动位置）
 	function enableScrollProtection(duration = 3000, currentY = null) {
-		// 立即记录当前滚动位置，避免延迟导致的位置偏差
 		const currentScrollY =
 			currentY !== null ? currentY : window.scrollY || window.pageYOffset;
 		scrollProtection.enabled = true;
@@ -50,25 +49,25 @@
 		if (scrollProtection.timeout) clearTimeout(scrollProtection.timeout);
 		scrollProtection.timeout = setTimeout(() => {
 			scrollProtection.enabled = false;
-			console.log("[强力滚动保护] 保护期结束");
+			console.log("[滚动保护] 保护期结束");
 		}, duration);
 
 		console.log(
-			`[强力滚动保护] 启动保护 ${duration}ms，允许Y位置:`,
+			`[滚动保护] 启动保护 ${duration}ms，允许Y位置:`,
 			scrollProtection.allowedY,
 		);
 	}
 
-	// 检查滚动是否被允许（优化：严格限制非法滚动）
+	// 检查滚动是否被允许（严格限制非法滚动）
 	function isScrollAllowed(x, y) {
 		if (!scrollProtection.enabled) return true;
 		const isTOCNavigation = checkIsTOCNavigation();
 		if (isTOCNavigation) {
-			console.log("[强力滚动保护] 检测到TOC导航，允许滚动");
+			console.log("[滚动保护] 检测到TOC导航，允许滚动");
 			return true;
 		}
 
-		// 缩小容差范围（从50px改为20px），减少误判
+		// 缩小容差范围，减少误判
 		const tolerance = 20;
 		const allowedY = scrollProtection.allowedY;
 
@@ -76,25 +75,15 @@
 		if (Math.abs(y - allowedY) <= tolerance) return true;
 		// 2. 阻止“跳顶部”（y<100且当前在更下方）
 		if (y < 100 && allowedY > 100) {
-			console.log(
-				"[强力滚动保护] 阻止滚动到顶部，目标Y:",
-				y,
-				"允许Y:",
-				allowedY,
-			);
+			console.log("[滚动保护] 阻止滚动到顶部，目标Y:", y, "允许Y:", allowedY);
 			return false;
 		}
-		// 3. 阻止任何大幅度滚动（新增：彻底拦截非法滚动）
-		console.log(
-			"[强力滚动保护] 阻止大幅度非法滚动，目标Y:",
-			y,
-			"允许Y:",
-			allowedY,
-		);
+		// 3. 阻止任何大幅度滚动
+		console.log("[滚动保护] 阻止大幅度非法滚动，目标Y:", y, "允许Y:", allowedY);
 		return false;
 	}
 
-	// 劫持 window.scrollTo（优化：彻底阻止非法滚动，不执行“先滚再回”）
+	// 劫持 window.scrollTo（彻底阻止非法滚动）
 	window.scrollTo = (x, y) => {
 		if (typeof x === "object") {
 			const options = x;
@@ -105,9 +94,7 @@
 		if (isScrollAllowed(x, y)) {
 			originalScrollTo.call(window, x, y);
 		} else {
-			console.log("[强力滚动保护] 彻底阻止 scrollTo:", x, y);
-			// 移除“滚回原位”的逻辑，避免视觉闪烁
-			// originalScrollTo.call(window, x, scrollProtection.allowedY);
+			console.log("[滚动保护] 彻底阻止 scrollTo:", x, y);
 		}
 	};
 
@@ -125,11 +112,11 @@
 		if (isScrollAllowed(x, targetY)) {
 			originalScrollBy.call(window, x, y);
 		} else {
-			console.log("[强力滚动保护] 彻底阻止 scrollBy:", x, y);
+			console.log("[滚动保护] 彻底阻止 scrollBy:", x, y);
 		}
 	};
 
-	// 劫持 Element.scrollIntoView（优化：提前计算目标位置，彻底阻止）
+	// 劫持 Element.scrollIntoView（提前计算目标位置，彻底阻止）
 	Element.prototype.scrollIntoView = function (options) {
 		if (!scrollProtection.enabled) {
 			originalScrollIntoView.call(this, options);
@@ -143,11 +130,11 @@
 		if (isScrollAllowed(0, targetY)) {
 			originalScrollIntoView.call(this, options);
 		} else {
-			console.log("[强力滚动保护] 彻底阻止 scrollIntoView");
+			console.log("[滚动保护] 彻底阻止 scrollIntoView");
 		}
 	};
 
-	// 新增：拦截 Twikoo 按钮的点击事件源头（核心修复！）
+	// 拦截 Twikoo 按钮的点击事件源头（核心：不阻止默认行为，仅启动保护）
 	function interceptTwikooEvent(event) {
 		const target = event.target;
 		// 匹配 Twikoo 交互按钮（点赞、回复、提交等，根据实际class调整）
@@ -156,13 +143,9 @@
 		);
 
 		if (twikooActionBtn) {
-			// 1. 阻止可能触发滚动的默认行为（如a标签跳转、表单默认提交）
-			if (event.preventDefault) event.preventDefault();
-			// 2. 阻止事件冒泡（避免父元素触发滚动逻辑）
-			if (event.stopPropagation) event.stopPropagation();
-			// 3. 立即启动滚动保护（确保保护时机早于滚动触发）
+			// 仅启动滚动保护，不阻止默认行为（避免影响按钮功能）
 			enableScrollProtection(4000);
-			console.log("[强力滚动保护] 拦截 Twikoo 按钮点击，提前启动保护");
+			console.log("[滚动保护] 拦截 Twikoo 按钮点击，启动保护");
 		}
 	}
 
@@ -175,17 +158,17 @@
 
 			const target = event.target;
 
-			// 原有TOC导航逻辑保留
+			// TOC导航逻辑保留
 			if (
 				target.closest("#toc, .table-of-contents") &&
 				target.closest('a[href^="#"]')
 			) {
 				window.tocClickTimestamp = Date.now();
-				console.log("[强力滚动保护] 检测到TOC导航点击");
+				console.log("[滚动保护] 检测到TOC导航点击");
 				return;
 			}
 
-			// 原有 Twikoo 交互检测逻辑保留（补充拦截）
+			// Twikoo 交互检测逻辑保留（补充拦截）
 			if (
 				target.closest("#tcomment") ||
 				target.matches(
@@ -196,10 +179,10 @@
 				)
 			) {
 				enableScrollProtection(4000);
-				console.log("[强力滚动保护] 检测到 Twikoo 交互，启动保护");
+				console.log("[滚动保护] 检测到 Twikoo 交互，启动保护");
 			}
 
-			// 原有管理面板逻辑保留
+			// 管理面板逻辑保留
 			if (
 				target.matches(
 					".tk-admin-panel, .tk-admin-overlay, .tk-modal, .tk-dialog, .tk-admin-close, .tk-close",
@@ -211,10 +194,10 @@
 				target.closest(".tk-admin")
 			) {
 				enableScrollProtection(6000);
-				console.log("[强力滚动保护] 检测到 Twikoo 管理面板操作，启动长期保护");
+				console.log("[滚动保护] 检测到 Twikoo 管理面板操作，启动长期保护");
 			}
 
-			// 原有遮罩层逻辑保留
+			// 遮罩层逻辑保留
 			if (
 				target.classList.contains("tk-overlay") ||
 				target.classList.contains("tk-mask") ||
@@ -228,29 +211,27 @@
 					(target.closest("#tcomment") || tcommentEl.contains(target))
 				) {
 					enableScrollProtection(4000);
-					console.log("[强力滚动保护] 检测到 Twikoo 遮罩层点击，启动保护");
+					console.log("[滚动保护] 检测到 Twikoo 遮罩层点击，启动保护");
 				}
 			}
 		},
-		true, // 捕获阶段：优先于事件冒泡执行，确保拦截时机最早
+		true, // 捕获阶段：优先于事件冒泡执行
 	);
 
-	// 监听表单提交（保留原有逻辑，补充源头拦截）
+	// 监听表单提交（关键修改：移除 event.preventDefault()，仅启动保护）
 	document.addEventListener(
 		"submit",
 		(event) => {
 			if (event.target.closest("#tcomment")) {
-				// 阻止表单默认提交（避免提交后页面刷新/滚动）
-				event.preventDefault();
+				// 仅启动滚动保护，不阻止表单默认提交（确保评论能正常发送）
 				enableScrollProtection(4000);
-				console.log("[强力滚动保护] 检测到 Twikoo 表单提交，启动保护");
-				// 若需要手动触发表单提交，可在此处添加：event.target.submit();
+				console.log("[滚动保护] 检测到 Twikoo 表单提交，启动保护");
 			}
 		},
 		true,
 	);
 
-	// 原有键盘事件、DOM变化监听逻辑保留
+	// 键盘事件监听逻辑保留
 	document.addEventListener(
 		"keydown",
 		(event) => {
@@ -263,7 +244,7 @@
 					if (adminPanel && adminPanel.offsetParent !== null) {
 						enableScrollProtection(3000);
 						console.log(
-							"[强力滚动保护] 检测到 ESC 键关闭 Twikoo 管理面板，启动保护",
+							"[滚动保护] 检测到 ESC 键关闭 Twikoo 管理面板，启动保护",
 						);
 					}
 				}
@@ -272,6 +253,7 @@
 		true,
 	);
 
+	// DOM变化监听逻辑保留
 	const observer = new MutationObserver((mutations) => {
 		mutations.forEach((mutation) => {
 			if (mutation.type === "childList" || mutation.type === "attributes") {
@@ -283,7 +265,7 @@
 							mutation.attributeName === "style")
 					) {
 						enableScrollProtection(2000);
-						console.log("[强力滚动保护] 检测到 Twikoo DOM 变化，启动保护");
+						console.log("[滚动保护] 检测到 Twikoo DOM 变化，启动保护");
 					}
 				}
 			}
@@ -314,13 +296,13 @@
 		disable: () => {
 			scrollProtection.enabled = false;
 			if (scrollProtection.timeout) clearTimeout(scrollProtection.timeout);
-			console.log("[强力滚动保护] 手动停止保护");
+			console.log("[滚动保护] 手动停止保护");
 		},
 		isEnabled: () => scrollProtection.enabled,
 		getStatus: () => ({ ...scrollProtection }),
 		forceProtect: (duration = 10000) => {
 			enableScrollProtection(duration);
-			console.log(`[强力滚动保护] 强制保护模式启动 ${duration}ms`);
+			console.log(`[滚动保护] 强制保护模式启动 ${duration}ms`);
 		},
 		getCurrentScroll: () => ({
 			x: window.scrollX || window.pageXOffset,
@@ -344,5 +326,5 @@
 		},
 	};
 
-	console.log("[强力滚动保护] 初始化完成（已启用事件源头拦截）");
+	console.log("[滚动保护] 初始化完成（已修复评论发送功能）");
 })();
