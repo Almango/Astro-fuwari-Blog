@@ -1,0 +1,206 @@
+---
+
+import { getEntry, render } from "astro:content";
+import Markdown from "@components/misc/Markdown.astro";
+import I18nKey from "../i18n/i18nKey";
+import { i18n } from "../i18n/translation";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import Comment from "@components/comment/index.astro";
+
+const friendsPost = await getEntry("spec", "friends");
+
+if (!friendsPost) {
+	throw new Error("friends page content not found");
+}
+
+const { Content } = await render(friendsPost);
+const items = [
+	{
+		title: "松坂希奈子",
+		siteurl: "https://blog.mysqil.com/",
+		imgurl: "https://blog.mysqil.com/_astro/avatar.BtZa3AXc_2ltEl2.webp",
+		desc: "这个世界很大❤",
+		tags: ["Framework"],
+	},
+	{
+		title: "张洪Heo",
+		imgurl: "https://bu.dusays.com/2022/12/28/63ac2812183aa.png",
+		desc: "分享设计与科技生活",
+		siteurl: "https://blog.zhheo.com/",
+		tags: ["Framework"],
+	},
+	{
+		title: "定の栈",
+		imgurl: "https://saop.cc/avatar.webp",
+		desc: "LINK START!",
+		siteurl: "https://saop.cc",
+		tags: ["Framework"],
+	},
+	{
+		title: "WuWu",
+		imgurl: "https://ming-e.space/images/1.webp",
+		desc: "车万人万岁",
+		siteurl: "https://ming-e.space",
+		tags: ["Framework"],
+	},
+
+	{
+		title: "卿以君歌",
+		imgurl: "https://q1.qlogo.cn/g?b=qq&nk=2882740&s=100",
+		desc: "幻术的世界有什么不好？",
+		siteurl: "https://www.mekimto.cn/",
+		tags: ["Framework"],
+	},
+	{
+		title: "青稚の空间",
+		imgurl: "https://blog.linux-qitong.top/img/avatar.webp",
+		desc: "越努力，越幸运.",
+		siteurl: "https://blog.linux-qitong.top/",
+		tags: ["Framework"],
+	},
+	{
+		title: "Revincx",
+		imgurl:
+			"https://cdn.jsdelivr.net/gh/Revincx/blog-assets@master/images/avatar.jpg",
+		desc: "可爱就是正义~",
+		siteurl: "https://blog.revincx.icu/",
+		tags: ["Framework"],
+	},
+	{
+		title: "懒觉猫先生",
+		imgurl: "https://pic.imgdb.cn/item/64c65629a9eb352efd93a379.webp",
+		desc: "阿巴阿巴阿巴..",
+		siteurl: "https://blog.luoaicheng.cn/",
+		tags: ["Framework"],
+	},
+	{
+		title: "三玖の博客",
+		imgurl: "https://q1.qlogo.cn/g?b=qq&nk=1973323029&s=100",
+		desc: "Forgive or Forget.",
+		siteurl: "https://blog.yuuka.top/",
+		tags: ["Framework"],
+	},
+	{
+		title: "YOUXIANYU",
+		imgurl: "https://www.youxianyu.cn/img/c.c.jpg",
+		desc: "唐人曾",
+		siteurl: "https://youxianyu.cn/",
+		tags: ["Framework"],
+	},
+	// {
+	// 	title: "",
+	// 	siteurl: "",
+	// 	imgurl: "",
+	// 	desc: "",
+	// 	tags: ["Framework"],
+	// },
+	{
+		title: "探人间",
+		siteurl: "https://www.hydsb0.com",
+		imgurl: "https://s21.ax1x.com/2025/07/13/pVlsr8S.jpg",
+		desc: "努力吃上更贵的雪糕！",
+		tags: ["Framework"],
+	},
+	{
+		title: "李小白",
+		siteurl: "https://blog.lxb.icu/",
+		imgurl: "https://q1.qlogo.cn/g?b=qq&nk=648226460&s=640",
+		desc: "风共舞，随心而行",
+		tags: ["Framework"],
+	},
+	{
+		title: "清欲の小窝",
+		siteurl: "https://blog.leoo.fun",
+		imgurl: "https://bu.dusays.com/2024/11/11/6731ad4c16396.jpg",
+		desc: "沙雕网友清欲的碎碎念",
+		tags: ["Framework"],
+	},
+	{
+		title: "鈴奈咲桜",
+		siteurl: "https://blog.sakura.ink",
+		imgurl: "https://blog.sakura.ink/_astro/avatar.B8d6PP-N_2a0uDN.webp",
+		desc: "愛することを忘れないで",
+		tags: ["Framework"],
+	},
+	{
+		title: "JustPureH2O",
+		siteurl: "https://justpureh2o.cn",
+		imgurl: "https://img.justpureh2o.cn/image/667f85b1d9c307b7e9ef9f2c.jpg",
+		desc: "穷方圆平直之情，尽规矩准绳之用。",
+		tags: ["Framework"],
+	},
+	{
+		title: "bbb-lsy07",
+		siteurl: "https://blog.6uu.us/",
+		imgurl:
+			"https://blog.6uu.us/upload/87790bc9-63eb-4420-ae4f-75872fec057d.png",
+		desc: "科技激荡人文，洞见智慧本真。",
+		tags: ["Framework"],
+	},
+	{
+		title: "ElysiumStack",
+		siteurl: "https://www.elysium-stack.cn/",
+		imgurl: "https://www.elysium-stack.cn/upload/ee0757e6-ebb4-46d0-a388-660f648653ea.jpg",
+		desc: "不会摄影的设计师不是优秀的旅行家",
+		tags: ["Framework"],
+	},
+    {
+	 	title: "小林の木屋",
+	 	siteurl: "https://www.wjlin0.com",
+	 	imgurl: "https://www.wjlin0.com/upload/log.png",
+	 	desc: "一个黑客小子！",
+	 	tags: ["Framework"],
+    },
+	{
+	 	title: "ATao-Blog",
+	 	siteurl: "https://blog.atao.cyou",
+	 	imgurl: "https://cdn.taonotespace.com/Web/Avatar.png",
+	 	desc: "做自己喜欢的事",
+	 	tags: ["Framework"],
+    },
+];
+
+
+
+
+---
+<MainGridLayout title={i18n(I18nKey.friends)} description={i18n(I18nKey.friends)}>
+    <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
+        <div class="card-base z-10 px-9 py-6 relative w-full ">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 my-4">
+                {items.map((item) => (
+                    <div class="flex flex-nowrap items-stretch h-28 gap-4 rounded-[var(--radius-large)]">
+                        <div class="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-zinc-200 dark:bg-zinc-900">
+                            <img src={item.imgurl} alt="站点头像" class="w-full h-full object-cover">
+                        </div>
+                        <div class="grow w-full">
+                            <div class="font-bold transition text-lg text-neutral-900 dark:text-neutral-100 mb-1">{item.title}</div>
+                            <div class="text-50 text-sm font-medium">{item.desc}</div>
+                            <div class:list={["items-center", {"flex": true, "hidden md:flex" : false}]}>
+                                <div class="flex flex-row flex-nowrap items-center">
+                                    {(item.tags && item.tags.length > 0) && item.tags.map((tag,i) => (
+                                    <div class:list={[{"hidden": i==0}, "mx-1.5 text-[var(--meta-divider)] text-sm" ]}>
+                                        /
+                                    </div>
+                                    <span class="transition text-50 text-sm font-medium">
+                                        {tag}
+                                    </span>))}
+                                    {!(item.tags && item.tags.length > 0) && <div class="transition text-50 text-sm font-medium">{i18n(I18nKey.noTags)}</div>}
+                                </div>
+                            </div>
+                        </div>
+                        <a href={item.siteurl} target="_blank" rel="noopener noreferrer"class="flex btn-regular w-[3.25rem] rounded-lg bg-[var(--enter-btn-bg)] hover:bg-[var(--enter-btn-bg-hover)] active:bg-[var(--enter-btn-bg-active)] active:scale-95">
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="transition text-[var(--primary)] text-4xl mx-auto iconify iconify--material-symbols" width="1em" height="1em" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M12.6 12L8.7 8.1q-.275-.275-.275-.7t.275-.7t.7-.275t.7.275l4.6 4.6q.15.15.213.325t.062.375t-.062.375t-.213.325l-4.6 4.6q-.275.275-.7.275t-.7-.275t-.275-.7t.275-.7z"></path>
+                            </svg>
+                        </a>
+                    </div>
+                ))}
+            </div>
+            <Markdown class="mt-2">
+                <Content />
+            </Markdown>
+        </div>
+    </div>
+<br><Comment path="/friends" / >    
+</MainGridLayout>

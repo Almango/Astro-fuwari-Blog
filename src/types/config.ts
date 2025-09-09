@@ -48,6 +48,7 @@ export enum LinkPreset {
 	Home = 0,
 	Archive = 1,
 	About = 2,
+	Friends = 3,
 }
 
 export type NavBarLink = {
@@ -75,6 +76,19 @@ export type LicenseConfig = {
 	enable: boolean;
 	name: string;
 	url: string;
+};
+
+// 评论配置
+
+export type CommentConfig = {
+	enable: boolean; // 是否启用评论功能
+	twikoo?: TwikooConfig;
+};
+
+type TwikooConfig = {
+	envId: string;
+	region?: string;
+	lang?: string;
 };
 
 export type LIGHT_DARK_MODE =

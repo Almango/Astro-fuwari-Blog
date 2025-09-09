@@ -1,0 +1,24 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { commentConfig } from "@/config";
+import Twikoo from "./Twikoo.astro";
+
+// 新增：允许外部传入path，而非固定/posts路径
+interface Props {
+	path: string; // 由调用页面传入具体路径（如/about、/friend）
+}
+
+const { path } = Astro.props; // 从外部接收路径
+const url = `${Astro.site?.href}${path}`;
+let commentService = "";
+if (commentConfig?.enable && commentConfig?.twikoo) {
+	commentService = "twikoo";
+}
+---
+{commentConfig?.enable && (
+  <div class="card-base p-6 mb-4">
+    {commentService === 'twikoo' && <Twikoo path={path} />}
+    {commentService === '' && null}
+  </div>
+)}
+
